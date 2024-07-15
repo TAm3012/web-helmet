@@ -1,0 +1,32 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/register.css">
+    <title>Đăng Ký</title>
+</head>
+<body>
+    {% block register%}
+    <h5></h5><br />
+    <div class="row" style="width:100%"> 
+        {%for product in products %}
+        <div class="col-lg-3">
+          <img class="thumbnail" src="{{product.ImageURL}}">
+          <div class="box-element product">
+            <h6><strong>{{product.name}}</strong></h6>
+            <hr>
+            <button data-product={{product.id}} data-action = "add" class="btn btn-outline-secondary add-btn update-cart"> +</button>
+              <a class="btn btn-outline-success" href="#">Xem</a>
+              <h5 style="dislay: inline-block; float:right;"><strong>{{product.price}} VND</strong></h5> 
+            </hr>
+          </div>
+        </div>  
+        {% endfor %}
+      </div>
+      <hr /><br /><hr />
+    {% endblock register%}
+</body>
+</html>

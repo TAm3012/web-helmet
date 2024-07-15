@@ -1,0 +1,60 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block banner_slider%}
+<div id="carouselExampleDark" class="carousel carousel-dark slide">
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+      <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="1" aria-label="Slide 2"></button>
+      <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="2" aria-label="Slide 3"></button>
+    </div>
+    <div class="carousel-inner">
+      <div class="carousel-item active" data-bs-interval="10000">
+        <img src={% static "app/images/bannerls2.png" %} class="d-block w-100" alt="LS2" height='250'>
+        <div class="carousel-caption d-none d-md-block text-white">
+          <h5>LS2</h5>
+          <p>Sẵn sàng với cuộc đua</p>
+        </div>
+      </div>
+      <div class="carousel-item" data-bs-interval="2000">
+        <img src={% static "app/images/bannerpoc.jpg" %} class="d-block w-100" alt="poc" height='250'>
+        <div class="carousel-caption d-none d-md-block text-white" >
+          <h5>P.O.C Sức mạnh của sự tạo tác</h5>
+          <p>Những sản phẩm chất lượng, luôn đi đôi với mới mẽ</p>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <img src={% static "app/images/bannerroyal.png" %} class="d-block w-100" alt="royal" height='250'>
+        <div class="carousel-caption d-none d-md-block text-white">
+          <h5>Royal</h5>
+          <p>Kiệt tác của hoàng gia</p>
+        </div>
+      </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+{%endblock banner_slider%}
+{% block main-content %}
+    <div class="row" style="width:100%"> 
+      {%for product in products %}
+      <div class="col-lg-3">
+        <img class="thumbnail" src="{{product.ImageURL}}">
+        <div class="box-element product">
+          <h6><strong>{{product.name}}</strong></h6>
+          <hr>
+          <button data-product={{product.id}} data-action = "add" class="btn btn-outline-secondary add-btn update-cart"> +</button>
+            <a class="btn btn-outline-success" href={% url 'detail' %}}>Xem</a>
+            <h5 style="dislay: inline-block; float:right;"><strong>{{product.price}} VND</strong></h5> 
+          </hr>
+        </div>
+      </div>  
+      {% endfor %}
+    </div>
+    <hr /><br /><hr />
+{% endblock main-content %}
