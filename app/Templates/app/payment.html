@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment</title>
+</head>
+<body>
+    <h1>Proceed to Payment</h1>
+    <form method="POST" id="payment-form">
+        {% csrf_token %}
+        <button type="submit" id="paypal-button">Pay with PayPal</button>
+    </form>
+    
+    <script src="https://www.paypal.com/sdk/js?client-id=AWysCdzkd7szaLYcBHJWeFyFphn8WdedCsBgjFrXApr6tLEro46QVnVYd356tj9ImueUZtKiq_t0MISV"></script>
+    <script>
+        paypal.Buttons({
+            createOrder: function(data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: '0.01' // Thay đổi giá trị thanh toán
+                        }
+                    }]
+                });
+            },
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(details) {
+                    alert('Transaction completed by ' + details.payer.name.given_name);
+                    document.getElementById('payment-form').submit();
+                });
+            }
+        }).render('#paypal-button');
+    </script>
+    
+</body>
+</html>
