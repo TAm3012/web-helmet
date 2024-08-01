@@ -47,7 +47,8 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         self.visible = self.quantity > 0
         super().save(*args, **kwargs)
-
+    def get_absolute_url(self):
+        return reverse('product_detail', args=[str(self.id)])
 class Order(models.Model):
     customer = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
     date_order = models.DateTimeField(auto_now_add=True)

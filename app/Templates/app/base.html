@@ -44,6 +44,21 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="">
+        <style>
+          .input-search {
+            position: relative;
+        }
+        .item-search{
+            position: absolute;
+            border: 1px solid green;
+            top: 83%;
+            z-index: 1;
+            color: #fff;
+            width: 208px;
+            height: 164px;
+            display:block;
+        }
+        </style>
     </head>
     <body>
         <!-- header -->
@@ -83,7 +98,10 @@
                 </ul>
                 <form class="d-flex" role="search" method = 'POST' action="{% url 'search'%}">
                   {% csrf_token %}
-                  <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name = "searched">
+                  <input class="form-control me-2 input-search" id="search" value="{{product.name}}" type="search" placeholder="Search" aria-label="Search" name = "searched">
+                  <div class="item-search">
+                  </div>
+                  
                   <button class="btn btn-outline-success" type="submit">Search</button>
                 </form>
               </div>

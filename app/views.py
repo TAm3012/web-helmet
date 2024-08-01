@@ -15,8 +15,6 @@ from django.conf import settings
 import paypalrestsdk
 from .models import Order, OrderItem, ShippingAddress, Category
 # Create your views here.
-
-
 # Import cấu hình PayPal
 import app.paypal_config
 paypalrestsdk.configure({
@@ -199,25 +197,38 @@ def category(request):
     context = {'categories': categories, 'products': products, 'active_category':active_category, 'user_not_login' : user_not_login, 'user_login' :user_login, 'cartItems':cartItems }
     return render(request, 'app/category.html', context)
 def search(request):
+    searched = ""
+    keys = Product.objects.none()  
     if request.method == "POST":
-        searched = request.POST["searched"]
-        keys = Product.objects.filter(name__contains = searched)
+        searched = request.POST.get("searched", "")
+        keys = Product.objects.filter(name__icontains=searched)  # Tìm kiếm không phân biệt chữ hoa chữ thường
+
     if request.user.is_authenticated:
         customer = request.user
-        order, created = Order.objects.get_or_create(customer = customer, complete = False)
+        order, created = Order.objects.get_or_create(customer=customer, complete=False)
         items = order.orderitem_set.all()
         cartItems = order.get_cart_items
         user_not_login = "hidden"
         user_login = "show"
     else:
-        items =[] 
-        order = {'get_cart_items' : 0, 'get_cart_total': 0}        
+        items = []
+        order = {'get_cart_items': 0, 'get_cart_total': 0}
         cartItems = order['get_cart_items']
         user_not_login = "show"
         user_login = "hidden"
-    categories = Category.objects.filter(is_sub = False)
-    products = Product.objects.all()
-    return render(request, 'app/search.html', {"searched": searched, "keys": keys, 'products': products, 'cartItems':cartItems,'user_not_login' : user_not_login, 'user_login' :user_login, 'categories':categories})
+
+    categories = Category.objects.filter(is_sub=False)
+    
+    context = {
+        "searched": searched,
+        "keys": keys,
+        'products': keys,  # Chỉ trả về các sản phẩm tìm thấy
+        'cartItems': cartItems,
+        'user_not_login': user_not_login,
+        'user_login': user_login,
+        'categories': categories
+    }
+    return render(request, 'app/search.html', context)
 
 def register(request):
     form = CreateUserForm()
@@ -321,7 +332,7 @@ def updateItem(request):
             messages.error(request, "Không đủ hàng để thêm vào giỏ.")
     elif action == 'remove':
         order_item.quantity -= 1
-        product.quantity += 1  # Tăng số lượng sản phẩm khi bỏ khỏi giỏ
+        product.quantity += 1  
 
     order_item.save()
 
@@ -354,3 +365,17 @@ def get_chatbot_response(message):
         return response.query_result.fulfillment_text
     except InvalidArgument:
         raise
+def search_ajax(request):
+    query = request.GET.get('q', '')
+    if query:
+        products = Product.objects.filter(name__icontains=query)
+        results = []
+        for product in products:
+            results.append({
+                'name': product.name,
+                'price': product.price,
+                'image_url': product.ImageURL,
+            })
+        return JsonResponse({'products': results})
+    else:
+        return JsonResponse({'products': []})
