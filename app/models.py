@@ -22,6 +22,8 @@ class Product(models.Model):
     price = models.FloatField()
     digital = models.BooleanField(default=False, null=True, blank=True)
     image = models.ImageField(null=True, blank=True)
+    quantity = models.IntegerField(default=0)  # Số lượng sản phẩm
+    visible = models.BooleanField(default=True)  # Trường để ẩn sản phẩm khi hết hàng
 
     def __str__(self):
         return self.name
@@ -32,7 +34,19 @@ class Product(models.Model):
             url = self.image.url
         except:
             url = ''
-        return url 
+        return url
+    def reduce_stock(self, quantity_purchased):
+        if self.quantity >= quantity_purchased:
+            self.quantity -= quantity_purchased
+            self.save()
+        else:
+            raise ValueError("Số lượng mua vượt quá số lượng có sẵn")
+        
+    def is_out_of_stock(self):
+        return self.quantity <= 0
+    def save(self, *args, **kwargs):
+        self.visible = self.quantity > 0
+        super().save(*args, **kwargs)
 
 class Order(models.Model):
     customer = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
@@ -65,6 +79,11 @@ class OrderItem(models.Model):
     def get_total(self):
         total = self.product.price * self.quantity
         return total
+
+    def save(self, *args, **kwargs):
+        if self.pk is None: 
+            self.product.reduce_stock(self.quantity)
+        super().save(*args, **kwargs)
 
 class ShippingAddress(models.Model):
     customer = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)

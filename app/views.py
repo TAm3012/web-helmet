@@ -40,14 +40,33 @@ def checkout(request):
         city = request.POST.get('city')
         state = request.POST.get('state')
 
-        # Save shipping information
+        # Lưu thông tin vận chuyển
         shipping_address, created = ShippingAddress.objects.get_or_create(
             customer=customer,
             order=order,
             defaults={'address': address, 'mobile': phone, 'city': city, 'state': state}
         )
 
-        return redirect('create_payment')
+        # Giảm số lượng sản phẩm và ẩn sản phẩm nếu hết hàng
+        for item in items:
+            product = item.product
+            if product.quantity >= item.quantity:
+                product.quantity -= item.quantity
+                product.save()
+                if product.quantity <= 0:
+                    # Ẩn sản phẩm nếu hết hàng
+                    product.visible = False  # Bạn cần thêm trường 'visible' trong model Product
+                    product.save()
+            else:
+                messages.error(request, f"Không đủ hàng cho sản phẩm {product.name}.")
+                return redirect('cart')
+
+        # Đánh dấu đơn hàng là hoàn thành
+        order.complete = True
+        order.save()
+
+        messages.success(request, "Đơn hàng của bạn đã được xử lý thành công!")
+        return redirect('home')
 
     categories = Category.objects.filter(is_sub=False)
     context = {
@@ -59,6 +78,7 @@ def checkout(request):
         'categories': categories
     }
     return render(request, 'app/checkout.html', context)
+
 
 @login_required
 def create_payment(request):
@@ -236,24 +256,34 @@ def loginPage(request):
 def logoutPage(request):
     logout(request)
     return redirect('login')
+
 def home(request):
     if request.user.is_authenticated:
         customer = request.user
-        order, created = Order.objects.get_or_create(customer = customer, complete = False)
+        order, created = Order.objects.get_or_create(customer=customer, complete=False)
         items = order.orderitem_set.all()
         cartItems = order.get_cart_items
         user_not_login = "hidden"
         user_login = "show"
     else:
-        items =[] 
-        order = {'get_cart_items' : 0, 'get_cart_total': 0}        
+        items = []
+        order = {'get_cart_items': 0, 'get_cart_total': 0}
         cartItems = order['get_cart_items']
         user_not_login = "show"
         user_login = "hidden"
-    categories = Category.objects.filter(is_sub = False)
-    products = Product.objects.all()
-    context= {'products': products, 'cartItems':cartItems,'user_not_login' : user_not_login, 'user_login' :user_login, 'categories':categories}
-    return render(request, 'app/home.html',context)
+    
+    products = Product.objects.filter(visible=True)
+    categories = Category.objects.filter(is_sub=False)
+
+    context = {
+        'products': products, 
+        'cartItems': cartItems, 
+        'user_not_login': user_not_login, 
+        'user_login': user_login, 
+        'categories': categories
+    }
+    return render(request, 'app/home.html', context)
+
 def cart(request):
     if request.user.is_authenticated:
         customer = request.user
@@ -273,24 +303,33 @@ def cart(request):
     return render(request, 'app/cart.html',context)
 
 
-
 def updateItem(request):
     data = json.loads(request.body)
     productId = data['productId']
     action = data['action']
+
     customer = request.user
-    product = Product.objects.get(id = productId)
-    order, created = Order.objects.get_or_create(customer = customer, complete = False)
-    orderItem, created = OrderItem.objects.get_or_create(order = order, product = product)
+    product = Product.objects.get(id=productId)
+    order, created = Order.objects.get_or_create(customer=customer, complete=False)
+    order_item, created = OrderItem.objects.get_or_create(order=order, product=product)
+
     if action == 'add':
-        orderItem.quantity +=1
+        if product.quantity >= 1:
+            order_item.quantity += 1
+            product.reduce_stock(1)  # Giảm số lượng sản phẩm
+        else:
+            messages.error(request, "Không đủ hàng để thêm vào giỏ.")
     elif action == 'remove':
-        orderItem.quantity -=1
-    orderItem.save()
-    if orderItem.quantity <=0:
-        orderItem.delete()
-    
-    return JsonResponse('added',safe = False)
+        order_item.quantity -= 1
+        product.quantity += 1  # Tăng số lượng sản phẩm khi bỏ khỏi giỏ
+
+    order_item.save()
+
+    if order_item.quantity <= 0:
+        order_item.delete()
+
+    return JsonResponse('Item was added', safe=False)
+
 
 @csrf_exempt
 def chatbot_view(request):
