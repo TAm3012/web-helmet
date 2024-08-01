@@ -122,7 +122,25 @@ def execute_payment(request):
 
 @login_required
 def payment_success(request):
-    return render(request, 'app/payment_success.html')
+    if request.user.is_authenticated:
+        customer = request.user
+        order, created = Order.objects.get_or_create(customer = customer, complete = False)
+        items = order.orderitem_set.all()
+        cartItems = order.get_cart_items
+        user_not_login = "hidden"
+        user_login = "show"
+        print(user_not_login)
+        print(user_login)
+    else:
+        items =[] 
+        order = {'get_cart_items' : 0, 'get_cart_total': 0}        
+        cartItems = order['get_cart_items']
+        user_not_login = "show"
+        user_login = "hidden"
+    categories = Category.objects.filter(is_sub = False)
+    products = Product.objects.all()
+    context= {'products': products, 'cartItems':cartItems,'user_not_login' : user_not_login, 'user_login' :user_login, 'categories':categories}
+    return render(request, 'app/payment_success.html', context)
 def detail(request):
     if request.user.is_authenticated:
         customer = request.user

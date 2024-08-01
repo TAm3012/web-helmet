@@ -88,3 +88,32 @@ a {
     margin: 0 0.8rem;
     font-size: 1.4rem;
 }
+
+.search-container {
+    position: relative;
+}
+
+#search-results {
+    position: absolute;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.search-result-item {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+}
+
+.search-result-item img {
+    margin-right: 10px;
+}
+
+.search-result-item p {
+    margin: 0;
+}
