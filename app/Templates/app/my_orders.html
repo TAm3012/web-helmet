@@ -1,0 +1,31 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>My Orders</title>
+</head>
+<body>
+    {% block content %}
+    <h2>My Orders</h2>
+    {% for order in orders %}
+        <div class="order">
+            <h3>Order ID: {{ order.id }} - Date: {{ order.timestamp }}</h3>
+            <ul>
+                {% for item in order.orderitem_set.all %}
+                    <li>
+                        <img src="{{ item.product.ImageURL }}" alt="{{ item.product.name }}" style="width: 100px; height: auto;">
+                        <strong>{{ item.product.name }}</strong> - {{ item.quantity }} x {{ item.product.price }} VND
+                    </li>
+                {% endfor %}
+            </ul>
+            <p><strong>Total: {{ order.get_cart_total }} VND</strong></p>
+        </div>
+        <hr>
+    {% endfor %}
+    {% endblock content %}
+</body>
+</html>

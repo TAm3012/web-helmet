@@ -63,12 +63,14 @@
             <div class="cart-row">
                 <div style="flex:2"><img class="row-image" src="{{item.product.ImageURL}}"></div>
                 <div style="flex:2"><p>{{item.product.name}}</p></div>
-                <div style="flex:1"><p>{{item.product.price}}</p></div>
+                <div style="flex:1"><p>{{item.product.price}} USD</p></div>
                 <div style="flex:1"><p>{{item.quantity}}</p></div>
             </div>
             {% endfor %}
             <h5>Items:   {{order.get_cart_items}}</h5>
-            <h5>Total:   {{order.get_cart_total}}</h5>
+            <h5>Total:   {{order.get_cart_total}} USD</h5>
+            <hr>
+            <h5>Order Date: {{ order.timestamp|date:"d M Y H:i:s" }}</h5> <!-- Hiển thị thời gian đặt hàng -->
         </div>
     </div>
 </div>

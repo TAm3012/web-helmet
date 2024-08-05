@@ -18,5 +18,6 @@ urlpatterns = [
     path('detail/', views.detail, name="detail"),
     path('chatbot/', views.chatbot_view, name="chatbot"),
     path('search_ajax/', views.search_ajax, name='search_ajax'),
+    path('my_orders/', views.my_orders, name='my_orders'),
 
 ]

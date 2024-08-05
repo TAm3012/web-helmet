@@ -14,7 +14,8 @@ from google.api_core.exceptions import InvalidArgument
 from django.conf import settings
 import paypalrestsdk
 from .models import Order, OrderItem, ShippingAddress, Category
-# Create your views here.
+from django.utils import timezone
+
 # Import cấu hình PayPal
 import app.paypal_config
 paypalrestsdk.configure({
@@ -52,8 +53,7 @@ def checkout(request):
                 product.quantity -= item.quantity
                 product.save()
                 if product.quantity <= 0:
-                    # Ẩn sản phẩm nếu hết hàng
-                    product.visible = False  # Bạn cần thêm trường 'visible' trong model Product
+                    product.visible = False  # Ẩn sản phẩm nếu hết hàng
                     product.save()
             else:
                 messages.error(request, f"Không đủ hàng cho sản phẩm {product.name}.")
@@ -61,10 +61,12 @@ def checkout(request):
 
         # Đánh dấu đơn hàng là hoàn thành
         order.complete = True
+        order.timestamp = timezone.now()  # Cập nhật thời gian đặt hàng
         order.save()
 
-        messages.success(request, "Đơn hàng của bạn đã được xử lý thành công!")
-        return redirect('home')
+        # Hiển thị thông báo và thời gian đặt hàng
+        messages.success(request, f"Bạn đã đặt hàng thành công vào lúc {order.timestamp.strftime('%Y-%m-%d %H:%M:%S')}!")
+        return redirect('checkout')
 
     categories = Category.objects.filter(is_sub=False)
     context = {
@@ -76,7 +78,23 @@ def checkout(request):
         'categories': categories
     }
     return render(request, 'app/checkout.html', context)
-
+@login_required
+def my_orders(request):
+    if request.user.is_authenticated:
+        customer = request.user
+        orders = Order.objects.filter(customer=customer, complete=True).order_by('-timestamp')
+        cartItems = Order.get_cart_items
+        user_not_login = "hidden"
+        user_login = "show"
+    else:
+        items =[] 
+        order = {'get_cart_items' : 0, 'get_cart_total': 0}
+        cartItems = order['get_cart_items']
+        user_not_login = "show"
+        user_login = "hidden"
+    categories = Category.objects.filter(is_sub = False)
+    context= { 'orders':orders, 'cartItems': cartItems,'user_not_login' : user_not_login, 'user_login' :user_login, 'categories':categories}
+    return render(request, 'app/my_orders.html',context) 
 
 @login_required
 def create_payment(request):
