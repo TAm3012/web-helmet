@@ -15,8 +15,98 @@ from django.conf import settings
 import paypalrestsdk
 from .models import Order, OrderItem, ShippingAddress, Category
 from django.utils import timezone
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import UserUpdateForm, AddressForm
 
-# Import cấu hình PayPal
+@login_required
+def account(request):
+    if request.method == 'POST':
+        user_not_login = "show"
+        user_login = "hidden"
+    else:
+        user_not_login = "hidden"
+        user_login = "show"
+    context={'user_not_login': user_not_login,
+        'user_login': user_login}
+    return render(request, 'app/account.html', context)
+
+@login_required
+def edit_account(request):
+    if request.method == 'POST':
+        user_form = UserUpdateForm(request.POST, instance=request.user)
+        user_not_login = "hidden"
+        user_login = "show"
+        if user_form.is_valid():
+            user_form.save()
+            messages.success(request, 'Thông tin tài khoản đã được cập nhật!')
+            return redirect('account')
+    else:
+        user_not_login = "hidden"
+        user_login = "show"
+        user_form = UserUpdateForm(instance=request.user)
+
+    context = {'user_form': user_form, 'user_not_login': user_not_login,
+        'user_login': user_login,}
+    return render(request, 'app/edit_account.html', context)
+
+@login_required
+def address_list(request):
+    if request.method == 'POST':
+        user_not_login = "show"
+        user_login = "hidden"
+    else:
+        user_not_login = "hidden"
+        user_login = "show"
+    addresses = ShippingAddress.objects.filter(customer=request.user)
+    return render(request, 'app/address_list.html', {'addresses': addresses, 'user_not_login': user_not_login,
+        'user_login': user_login})
+
+@login_required
+def add_address(request):
+    if request.method == 'POST':
+        form = AddressForm(request.POST)
+        user_not_login = "show"
+        user_login = "hidden"
+        if form.is_valid():
+            address = form.save(commit=False)
+            address.customer = request.user
+            address.save()
+            messages.success(request, 'Địa chỉ mới đã được thêm!')
+            return redirect('address_list')
+    else:
+        user_not_login = "hidden"
+        user_login = "show"
+        form = AddressForm()
+    
+    return render(request, 'app/add_address.html', {'form': form, 'user_not_login': user_not_login,
+        'user_login': user_login})
+
+@login_required
+def edit_address(request, pk):
+    address = get_object_or_404(ShippingAddress, pk=pk)
+    
+    if request.method == 'POST':
+        form = AddressForm(request.POST, instance=address)
+        user_not_login = "hidden"
+        user_login = "show"
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Địa chỉ đã được cập nhật!')
+            return redirect('address_list')
+    else:
+        user_not_login = "show"
+        user_login = "hidden"
+        form = AddressForm(instance=address)
+    
+    return render(request, 'app/edit_address.html', {'form': form, 'user_not_login': user_not_login ,'user_login': user_login})
+
+@login_required
+def delete_address(request, pk):
+    address = get_object_or_404(ShippingAddress, pk=pk)
+    address.delete()
+    messages.success(request, 'Địa chỉ đã được xóa!')
+    return redirect('address_list')
+
 import app.paypal_config
 paypalrestsdk.configure({
     "mode": settings.PAYPAL_MODE,  # sandbox hoặc live
@@ -219,7 +309,7 @@ def search(request):
     keys = Product.objects.none()  
     if request.method == "POST":
         searched = request.POST.get("searched", "")
-        keys = Product.objects.filter(name__icontains=searched)  # Tìm kiếm không phân biệt chữ hoa chữ thường
+        keys = Product.objects.filter(name__icontains=searched).order_by('-price')
 
     if request.user.is_authenticated:
         customer = request.user
@@ -301,7 +391,7 @@ def home(request):
         user_not_login = "show"
         user_login = "hidden"
     
-    products = Product.objects.filter(visible=True)
+    products = Product.objects.filter(visible=True).order_by('-price')
     categories = Category.objects.filter(is_sub=False)
 
     context = {

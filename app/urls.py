@@ -19,5 +19,11 @@ urlpatterns = [
     path('chatbot/', views.chatbot_view, name="chatbot"),
     path('search_ajax/', views.search_ajax, name='search_ajax'),
     path('my_orders/', views.my_orders, name='my_orders'),
+    path('account/', views.account, name='account'),
+    path('account/edit/', views.edit_account, name='edit_account'),
+    path('address/', views.address_list, name='address_list'),
+    path('address/add/', views.add_address, name='add_address'),
+    path('address/edit/<int:pk>/', views.edit_address, name='edit_address'),
+    path('address/delete/<int:pk>/', views.delete_address, name='delete_address'),
 
 ]

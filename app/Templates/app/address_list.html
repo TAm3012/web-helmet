@@ -1,0 +1,15 @@
+{% extends 'app/base.html' %}
+{% block content %}
+    <h2>Danh sách địa chỉ giao hàng</h2>
+    <a href="{% url 'add_address' %}">Thêm địa chỉ mới</a>
+    <ul>
+        {% for address in addresses %}
+            <li>
+                {{ address.address }}, {{ address.city }}, {{ address.state }} - {{ address.mobile }}
+                <a href="{% url 'edit_address' address.pk %}">Sửa</a> |
+                <a href="{% url 'delete_address' address.pk %}">Xóa</a>
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'account' %}">Quay lại</a>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'app/base.html' %}
+{% block content %}
+    <h2>{% if form.instance.pk %}Sửa{% else %}Thêm{% endif %} địa chỉ</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">{% if form.instance.pk %}Lưu{% else %}Thêm{% endif %}</button>
+    </form>
+    <a href="{% url 'address_list' %}">Quay lại</a>
+{% endblock %}
